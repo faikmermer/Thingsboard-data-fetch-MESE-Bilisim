@@ -12,7 +12,7 @@ It is an HTML page where login, devices and data are taken with HTML and JAVASCR
 # Installation
   
 1) First of all, create the add device temperature feature from ThingBoard website.
-* [ThingsBoard dokümantasyon](https://thingsboard.io/docs/pe/user-guide/)
+* [ThingsBoard documentation](https://thingsboard.io/docs/pe/user-guide/)
 
 2) Clone the repo and create an .env File 
 + For instance :
@@ -33,8 +33,8 @@ npm install
 ```
 5) Run
 ```
- - nodemon .\src\index.js
- ```
+nodemon .\src\index.js
+```
 
 # Usage
 
