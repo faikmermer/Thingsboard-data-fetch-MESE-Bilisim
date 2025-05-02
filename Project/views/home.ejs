@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home page</title>
+    <link rel="stylesheet" href="homeStyle.css">
+    <link rel="icon" type="image/png" href="/indir.png">
+
+    <script>
+        async function fetchData() {
+
+            document.getElementById("temp").innerText = "---";
+            const loginResponse = await fetch("http://127.0.0.1:8080/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: "tenant@thingsboard.org",
+                    password: "tenant"
+                })
+            });
+        
+            if (!loginResponse.ok) {
+                console.error("Login failed!");
+                return;
+            }
+        
+            const loginData = await loginResponse.json();
+            const token = loginData.token;
+
+            const deviceId = document.getElementById("deviceInput").value;
+
+            if(!deviceId) {
+                showMessage("Device ID is required!");
+                return;
+            }
+
+            const DeviceTokenResponse = await fetch(`http://127.0.0.1:8080/api/device/${deviceId}/credentials`,{
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Authorization": "Bearer " + token
+                }
+            });
+            const telemetryResponse = await fetch(`http://127.0.0.1:8080/api/plugins/telemetry/DEVICE/${deviceId}/values/timeseries?keys=`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Authorization": "Bearer " + token
+                }
+            });
+
+
+            const deviceTokenData = await DeviceTokenResponse.json();
+            console.log("cihaz verisi ", deviceTokenData);
+            const deviceToken = deviceTokenData.credentialsId;  
+        
+            const telemetryData = await telemetryResponse.json();
+            console.log("telemetri verisi ", telemetryData);
+
+            document.getElementById("deviceId").innerText =  deviceToken;
+
+            if(!telemetryData || Object.keys(telemetryData).length === 0) {
+                showMessage("No telemetry data available for this device.");
+                return;
+            }
+            showMessage("Data successfully fetched!");
+            const temperature = telemetryData.temperature[0].value;
+            document.getElementById("temp").innerText = temperature;
+
+            await fetch("/api/saveTemperature", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    temperature
+                })
+            });
+            window.location.href = "/widget?temperature=" + temperature + "&accessToken=" + deviceToken;
+        }
+
+        async function getDeviceData() {
+            const loginResponse = await fetch("http://127.0.0.1:8080/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: "tenant@thingsboard.org",
+                    password: "tenant"
+                })
+            });
+        
+            if (!loginResponse.ok) {
+                console.error("Login failed!");
+                return;
+            }
+        
+            const loginData = await loginResponse.json();
+            const token = loginData.token;
+
+            const data = await fetch(`http://127.0.0.1:8080/api/tenant/devices?pageSize=10&page=0`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Authorization": "Bearer " + token
+                }
+            });
+
+            const deviceData = await data.json();
+            console.log("cihaz verisi ", deviceData);
+            const devicesName = deviceData.data;
+
+            const tableBody = document.querySelector("#deviceTable tbody");
+            tableBody.innerHTML = ""; 
+
+            devicesName.forEach(device => {
+                const row = document.createElement("tr");
+
+                const name = document.createElement("td");
+                name.textContent = device.name;
+
+                const id = document.createElement("td");
+                id.textContent = device.id.id;
+
+                row.appendChild(name);
+                row.appendChild(id);
+                tableBody.appendChild(row);
+
+            });
+            showMessage("Devices data successfully fetched!");
+        }
+
+        function showMessage(message) {
+            const messageContainer = document.getElementById("messageContainer");
+            messageContainer.innerHTML = `<p>${message}</p>`;
+        }
+
+        const sortDirections = {}; 
+
+        function sortTable(column) {
+            const table = document.getElementById("deviceTable");
+            const rows = Array.from(table.tBodies[0].rows);
+
+            const direction = sortDirections[column] ?? 1;
+
+            rows.sort((a, b) => {
+            const aValue = a.cells[column].textContent.trim();
+            const bValue = b.cells[column].textContent.trim();
+            const isNumeric = !isNaN(aValue) && !isNaN(bValue);
+            if (isNumeric) {
+                return direction === 1 
+                  ? parseFloat(aValue) - parseFloat(bValue)
+                  : parseFloat(bValue) - parseFloat(aValue);
+            }else {
+                return direction === 1
+                  ? aValue.localeCompare(bValue)
+                  : bValue.localeCompare(aValue);
+            }
+           });
+
+            rows.forEach(row => table.tBodies[0].appendChild(row));
+
+            sortDirections[column] = -direction;
+        }
+
+        </script>
+        
+   
+</head>
+<body>
+    <h1 style="text-align: center;">IoT Device Telemetry</h1>
+    <h2 style="text-align: center;">Thingsboard</h2>
+    
+    <button class="button1" onclick="getDeviceData()">Devices List</button>
+    
+    <div id="messageContainer"></div>
+    
+    
+    <div style="text-align: center; font-size: 24px;">
+        Devices List:
+        <ul id="deviceList"></ul>
+    </div>
+    <table id="deviceTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0, 1)">Device Name ↑↓</th>
+                <th onclick="sortTable(0, 1)">Device ID ↑↓</th>
+            </tr>
+        </thead>
+        <tbody id="deviceList">
+        </tbody>
+    </table>
+    <br>
+    <div class="form-footer">
+        <label for="deviceInput">Cihaz Id</label>
+        <input type="text" id="deviceInput" placeholder="Enter your device ID" required autocomplete="off">
+        <label>"Get Data" Please Click</label>
+        <button class="button" onclick="fetchData()">Get Data</button>
+    </div>
+    <div style="text-align: center; font-size: 24px;">
+        Temperature: <span id="temp">---</span> °C
+    </div>
+    <div style="text-align: center; font-size: 24px;">
+        Device Acces Token: <span id="deviceId">---</span>
+    </div>
+    <br>
+    <div class="button-group">
+        <button class="logout" onclick="window.location.href='/logout'" style="width: auto;">Logout</button>
+    </div>
+
+    
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Görselleştirme Sayfası</title>
+    <link rel="stylesheet" href="widget.css">
+    <link rel="icon" type="image/png" href="/indir.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     
+</head>
+
+    
+<body>
+    <div style="position: relative; width: 100%; height: auto;">
+        <div style="position: fixed; top: 300px; left: 400px;">
+          <canvas id="temperatureChart" width="500" height="300"
+            style="background-color: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 10px;">
+          </canvas>
+        </div>
+        <input type="number" id="deviceInput" placeholder="Please enter temperature" style="position: absolute; top: 200px; left: 700px; padding: 5px; border-radius: 5px; border: 1px solid #ccc; width: 200px; font-size: 16px; text-align: center;">
+        <button onclick="sendTemperature()" style="position: absolute; top: 250px; left: 700px; padding: 5px 10px; border-radius: 10px; border: line; background-color: #4CAF50; color: white; cursor: pointer; font-size: 16px;">Send Temperature</button>
+      </div>
+        <% if (temperature) { %>
+            <script>
+                const temperatureData = <%- JSON.stringify(temperatures) %>;
+                const labels = temperatureData.map(item => new Date(item.timestamp).toLocaleString("tr-TR"));
+                const data = temperatureData.map(item => item.temperature); 
+            
+                const ctx = document.getElementById('temperatureChart').getContext('2d');
+            
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Temperature (°C)',
+                            data: data,
+                            borderColor: data.map(val => val > 25 ? 'red' : 'blue'),
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                async function sendTemperature() {
+                    const tempInput = document.getElementById('deviceInput').value;
+                    const newTemperature = parseFloat(tempInput);
+                    const accessToken = '<%= accessToken %>';
+                    if (isNaN(newTemperature)) {
+                        alert('Please enter a valid temperature value.');
+                        return;
+                    }
+                    const newTimestamp = Date.now();
+
+                    try{
+                        const response = await fetch(`http://localhost:8080/api/v1/${accessToken}/telemetry`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type' : 'application/json'
+                            },
+                            body: JSON.stringify({
+                                temperature: newTemperature,
+                            })
+                        });
+                        if(!response.ok) {
+                            throw new Error('Network response was not ok' + response.statusText);
+                        }
+
+                        await fetch('/api/saveTemperature', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                temperature: newTemperature,
+                            })
+                        });
+
+                        chart.data.labels.push(new Date(newTimestamp).toLocaleString("tr-TR"));
+                        chart.data.datasets[0].data.push(newTemperature);
+                        chart.data.datasets[0].borderColor.push(newTemperature > 25 ? 'red' : 'blue');
+                        chart.update();
+                        document.getElementById('deviceInput').value = '';
+
+                        const tableBody = document.querySelector('tbody');
+                        const newRow = document.createElement('tr');
+                        newRow.style.borderBottom = '1px solid #ccc';
+
+                        const newTimeCell = document.createElement('td');
+                        newTimeCell.style.padding = '10px';
+                        newTimeCell.style.textAlign = 'left';
+                        newTimeCell.textContent = new Date(newTimestamp).toLocaleString("tr-TR");
+
+                        const tempCell = document.createElement('td');
+                        tempCell.style.padding = '10px';
+                        tempCell.style.textAlign = 'left';
+                        tempCell.textContent = newTemperature;
+                        tempCell.style.color = newTemperature > 25 ? 'red' : 'green';
+
+                        newRow.appendChild(newTimeCell);
+                        newRow.appendChild(tempCell);
+                        tableBody.prepend(newRow);
+
+                    } catch (error) {
+                        console.error('There was a problem with the fetch operation:', error);
+                    }
+                }
+            </script>
+            
+        <% } else { %>
+            <p>No temperature data available</p>
+        <% } %>
+    <div style="margin:20px; max-width: 600px; left: 1000px; position: fixed; top: 280px; background-color: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 20px;">
+        <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; box-shadow: 0 0 10px rgba(0,0,0,0.15);">
+            <thead style="background-color: #333; color: white  ;">
+                <tr>
+                    <th style="padding: 10px; text-align: left;">Time</th>
+                    <th style="padding: 10px; text-align: left;">Temperature</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% temperatures.slice().reverse().forEach(temperature => { %>
+                    <tr style="border-bottom: 1px solid #ccc;">
+                        <td style="padding: 10px;"><%= new Date(temperature.timestamp).toLocaleString("tr-TR") %></td>
+                        <td style="padding: 10px; color: <%= temperature.temperature > 25 ? 'red' : 'black' %>;">
+                            <%= temperature.temperature %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+
+   
+</body>
+</html>

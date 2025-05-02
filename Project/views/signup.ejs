@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignUp</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+    <div class="form-container">
+        <h2>SignUp</h2>
+        <form action="/signup" method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" placeholder="Enter your username" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="off">
+            </div>
+            <button type="submit" class="submit-button">SignUp</button>
+        </form>
+    </div>
+    
+</body>
+</html>
