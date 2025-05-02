@@ -51,7 +51,7 @@ Below is the general workflow of the application:
 
 ![data](https://github.com/faikmermer/faikmermer-Thingsboard-data-fetch-MESE-Bilisim/blob/main/Project/assets/verig%C3%B6rsel.gif)
 
-#Contributing
+# Contributing
 To contribute to the project, follow these steps:
 
 1. Fork the project
