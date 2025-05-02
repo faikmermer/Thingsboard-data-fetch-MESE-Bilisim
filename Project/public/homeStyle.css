@@ -1,0 +1,100 @@
+.button{
+    background-color: #9591d6;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    font-size: 16px;
+    margin: 20px auto;
+    display: block;
+    cursor: pointer;
+}
+.button:hover {
+    background-color: #45a049;
+}
+.button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+#messageContainer {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 10px;
+    border: 1px solid #cababa;
+    background-color: #cababa;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+.button1 {
+    background-color: #9591d6;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    font-size: 16px;
+    margin: 20px auto;
+    display: block;
+    cursor: pointer;
+}
+.button1:hover {
+    background-color: #9591d6;
+}
+#deviceList {
+    list-style-type: none;
+    padding: 0;
+}
+
+.form-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 1rem;
+    color: #0e0b0b;
+    line-height: 1.5;
+}
+.form-footer a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+
+#deviceTable {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 800px;
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #333;
+}
+
+#deviceTable th, #deviceTable td {
+    border: 1px solid #bcbeca;
+    padding: 8px;
+    text-align: left;
+}
+#deviceTable th {
+    background-color: #b8bdc7;
+    color: #333;
+}
+body {
+    background-color: #c0adad;
+    
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+.button-group button {
+    background-color: #9591d6;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+}
+.button-group button:hover {
+    background-color: #9591d6;
+}
